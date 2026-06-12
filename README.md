@@ -96,10 +96,3 @@ You can use the whole thing with just a keyboard, the focus outlines are easy to
 ## Changing the name
 
 The name only lives in lib/brand.ts. Change APP_NAME there and the whole app updates.
-
-## Congressional App Challenge checklist
-
-1. Check the poverty numbers in lib/fpl.ts and the program limits in lib/programs.ts for your state.
-2. Read AI_USAGE.md and make sure it honestly says how you used AI.
-3. Record the demo video, 1 to 3 minutes, and post it public on YouTube or Vimeo.
-4. Be ready to walk a judge through eligibility.ts and programs.ts and explain how a result is made.
