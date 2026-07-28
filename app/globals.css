@@ -49,3 +49,28 @@
 .stagger > *:nth-child(5){animation-delay:.24s}
 .stagger > *:nth-child(6){animation-delay:.29s}
 .stagger > *:nth-child(7){animation-delay:.34s}
+
+/* Print styles */
+@media print {
+  header, footer, button, .no-print { display: none !important; }
+  body { background: white; font-size: 13px; }
+  .shadow-card { box-shadow: none; border: 1px solid #e3e8ef; }
+}
+
+/* Install prompt banner */
+.install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #1b1f27;
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  box-shadow: 0 -4px 24px rgba(27,31,39,0.18);
+}

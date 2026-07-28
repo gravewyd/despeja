@@ -1,76 +1,56 @@
 // lib/programs.ts
-// -----------------------------------------------------------------------------
-// THE HEART OF TESSERA.
-//
-// Each entry is one assistance program: how to describe it, what documents it
-// needs, where to apply, and a `evaluate()` function that decides whether the
-// household is "likely", "maybe", or "unlikely" to qualify.
-//
-// ⚠️ IMPORTANT — READ BEFORE YOU SUBMIT:
-//   * Every income cutoff below is a SIMPLIFIED, APPROXIMATE rule. Real
-//     eligibility varies by STATE, by FILING STATUS, by year, and by special
-//     rules (deductions, assets, immigration status, categorical eligibility).
-//   * Tessera presents a *preliminary estimate*, never an official decision.
-//     That is why every card links to the official source.
-//   * To make this genuinely yours (and accurate): pick YOUR state, look up the
-//     real numbers from the linked sources, and tighten these rules. This file
-//     is designed so you only edit thresholds + text, not the plumbing.
-//
-// Sources are official .gov pages and are stable.
-// -----------------------------------------------------------------------------
+// California-specific benefit programs for Despeja.
+// Program names use California's official names (CalFresh, Medi-Cal, etc.)
+// Thresholds reflect California rules as of 2024-2025.
 
 import type { Program, EligibilityStatus } from "./types";
 
-/** Small helper: turn a %FPL value into a status using two thresholds. */
-function byFpl(
-  pct: number,
-  likelyAtOrBelow: number,
-  maybeAtOrBelow: number,
-): EligibilityStatus {
+function byFpl(pct: number, likelyAtOrBelow: number, maybeAtOrBelow: number): EligibilityStatus {
   if (pct <= likelyAtOrBelow) return "likely";
   if (pct <= maybeAtOrBelow) return "maybe";
   return "unlikely";
 }
 
-// Approximate EITC income ceilings by number of qualifying children.
-// (Roughly tax-year 2024, married-filing-jointly. VERIFY + UPDATE from the IRS.)
-const EITC_INCOME_CEILING = [19100, 50400, 57300, 61600]; // index = min(numChildren, 3)
-// Approximate maximum credit by number of children, for the "up to ~$X" estimate.
+const EITC_INCOME_CEILING = [19100, 50400, 57300, 61600];
 const EITC_MAX_CREDIT = [632, 4213, 6960, 7830];
+// California EITC (CalEITC) thresholds 2024
+const CALEITC_CEILING = [18591, 26511, 26511, 26511];
+const CALEITC_MAX = [285, 1900, 3137, 3529];
 
 export const PROGRAMS: Program[] = [
   // ---------------------------------------------------------------------------
   {
     id: "snap",
-    name: { en: "SNAP — Food Assistance", es: "SNAP — Asistencia de alimentos" },
+    name: { en: "CalFresh — Food Assistance", es: "CalFresh — Asistencia de alimentos" },
     tagline: {
-      en: "Monthly money for groceries.",
-      es: "Dinero mensual para comprar comida.",
+      en: "Monthly money for groceries, California's food assistance program.",
+      es: "Dinero mensual para comida, el programa de asistencia alimentaria de California.",
     },
     description: {
-      en: "SNAP (formerly food stamps) puts money on a card each month to help your household buy groceries. Most households qualify if their before-tax income is at or below about 130% of the poverty line, though many states allow higher limits.",
-      es: "SNAP (antes cupones de alimentos) deposita dinero en una tarjeta cada mes para ayudar a su hogar a comprar comida. La mayoría califica si su ingreso antes de impuestos está en o por debajo de aproximadamente el 130% del nivel de pobreza, aunque muchos estados permiten límites más altos.",
+      en: "CalFresh (California's name for SNAP) puts money on an EBT card each month to help your household buy groceries. In California, most households qualify if their gross income is at or below 200% of the poverty line — one of the most generous limits in the country.",
+      es: "CalFresh (el nombre de California para SNAP) deposita dinero en una tarjeta EBT cada mes para ayudar a su hogar a comprar comida. En California, la mayoría califica si su ingreso bruto está en o por debajo del 200% del nivel de pobreza — uno de los límites más generosos del país.",
     },
     documents: {
-      en: ["Photo ID", "Proof of income (recent pay stubs)", "Proof of where you live", "Social Security numbers for the household"],
-      es: ["Identificación con foto", "Comprobante de ingresos (talones de pago recientes)", "Comprobante de domicilio", "Números de Seguro Social del hogar"],
+      en: ["Photo ID", "Proof of income (recent pay stubs or letter)", "Proof of address", "Social Security numbers for household members"],
+      es: ["Identificación con foto", "Comprobante de ingresos (talones de pago recientes)", "Comprobante de domicilio", "Números de Seguro Social de los miembros del hogar"],
     },
     source: {
-      label: { en: "USDA — SNAP eligibility", es: "USDA — Elegibilidad de SNAP" },
-      url: "https://www.fns.usda.gov/snap/recipient/eligibility",
+      label: { en: "California CDSS — CalFresh", es: "CDSS de California — CalFresh" },
+      url: "https://www.cdss.ca.gov/calfresh",
     },
-    applyUrl: "https://www.fns.usda.gov/snap/state-directory",
+    applyUrl: "https://benefitscal.com",
     evaluate: (_h, ctx) => {
+      // California uses 200% FPL gross income test (expanded)
       const status = byFpl(ctx.percentOfFpl, 130, 200);
       return {
         status,
         reason: {
-          en: `Your income is about ${ctx.percentOfFpl}% of the poverty line.`,
-          es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza.`,
+          en: `Your income is about ${ctx.percentOfFpl}% of the poverty line. California allows up to 200% FPL.`,
+          es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza. California permite hasta el 200% FPL.`,
         },
         estimate: {
-          en: "Amount depends on income and expenses; many households receive $100–$300+ per person each month.",
-          es: "El monto depende de los ingresos y gastos; muchos hogares reciben $100–$300+ por persona al mes.",
+          en: "Many California households receive $100–$300+ per person per month on their EBT card.",
+          es: "Muchos hogares en California reciben $100–$300+ por persona al mes en su tarjeta EBT.",
         },
       };
     },
@@ -79,39 +59,38 @@ export const PROGRAMS: Program[] = [
   // ---------------------------------------------------------------------------
   {
     id: "medicaid",
-    name: { en: "Medicaid / CHIP — Health Coverage", es: "Medicaid / CHIP — Cobertura médica" },
+    name: { en: "Medi-Cal — Health Coverage", es: "Medi-Cal — Cobertura médica" },
     tagline: {
-      en: "Free or low-cost health insurance.",
-      es: "Seguro médico gratuito o de bajo costo.",
+      en: "Free or low-cost health insurance through California.",
+      es: "Seguro médico gratuito o de bajo costo a través de California.",
     },
     description: {
-      en: "Medicaid provides free or low-cost health coverage. In states that expanded Medicaid, adults usually qualify at or below 138% of the poverty line. Children often qualify at higher incomes through CHIP. Rules vary a lot by state.",
-      es: "Medicaid ofrece cobertura médica gratuita o de bajo costo. En los estados que ampliaron Medicaid, los adultos suelen calificar en o por debajo del 138% del nivel de pobreza. Los niños a menudo califican con ingresos más altos mediante CHIP. Las reglas varían mucho según el estado.",
+      en: "Medi-Cal is California's Medicaid program and covers doctor visits, prescriptions, hospital stays, mental health, and dental. As of 2024, all income-eligible Californians qualify regardless of immigration status. Most adults qualify up to 138% of the poverty line; children and pregnant people qualify at higher income levels.",
+      es: "Medi-Cal es el programa Medicaid de California y cubre visitas médicas, medicamentos, hospitalizaciones, salud mental y dental. Desde 2024, todos los californianos con ingresos elegibles califican sin importar su estatus migratorio. La mayoría de adultos califica hasta el 138% del nivel de pobreza.",
     },
     documents: {
-      en: ["Photo ID", "Proof of income", "Proof of state residency", "Immigration documents (if applicable)"],
-      es: ["Identificación con foto", "Comprobante de ingresos", "Comprobante de residencia en el estado", "Documentos de inmigración (si aplica)"],
+      en: ["Photo ID", "Proof of income", "Proof of California residency", "Social Security number (if available)"],
+      es: ["Identificación con foto", "Comprobante de ingresos", "Comprobante de residencia en California", "Número de Seguro Social (si disponible)"],
     },
     source: {
-      label: { en: "Medicaid.gov — eligibility", es: "Medicaid.gov — elegibilidad" },
-      url: "https://www.medicaid.gov/medicaid/eligibility/index.html",
+      label: { en: "California DHCS — Medi-Cal", es: "DHCS de California — Medi-Cal" },
+      url: "https://www.dhcs.ca.gov/services/medi-cal/Pages/whatismedi-cal.aspx",
     },
-    applyUrl: "https://www.healthcare.gov/medicaid-chip/getting-medicaid-chip/",
+    applyUrl: "https://benefitscal.com",
     evaluate: (h, ctx) => {
-      // Adults: ~138% FPL. Kids/CHIP frequently to ~210%+.
-      const childBump = h.numChildrenUnder18 > 0 ? 213 : 138;
+      const childBump = h.numChildrenUnder18 > 0 ? 266 : 138;
       const status = byFpl(ctx.percentOfFpl, 138, childBump);
       return {
         status,
         reason:
           status === "maybe" && h.numChildrenUnder18 > 0
             ? {
-                en: "Adults may be over the limit, but your children may qualify through CHIP.",
-                es: "Los adultos podrían superar el límite, pero sus hijos podrían calificar mediante CHIP.",
+                en: "Adults may be over the income limit, but your children likely qualify through Medi-Cal or CHIP.",
+                es: "Los adultos podrían superar el límite, pero sus hijos probablemente califican mediante Medi-Cal o CHIP.",
               }
             : {
-                en: `Your income is about ${ctx.percentOfFpl}% of the poverty line.`,
-                es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza.`,
+                en: `Your income is about ${ctx.percentOfFpl}% of the poverty line. Medi-Cal covers up to 138% for adults.`,
+                es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza. Medi-Cal cubre hasta el 138% para adultos.`,
               },
       };
     },
@@ -122,22 +101,22 @@ export const PROGRAMS: Program[] = [
     id: "wic",
     name: { en: "WIC — Nutrition for Parents & Young Kids", es: "WIC — Nutrición para padres y niños pequeños" },
     tagline: {
-      en: "Food, formula & support during pregnancy and early childhood.",
+      en: "Food, formula, and support during pregnancy and early childhood.",
       es: "Alimentos, fórmula y apoyo durante el embarazo y la primera infancia.",
     },
     description: {
-      en: "WIC supports pregnant people, new parents, and children under 5 with healthy food, infant formula, breastfeeding help, and check-ups. The income limit is about 185% of the poverty line, and being on Medicaid or SNAP usually qualifies you automatically.",
-      es: "WIC apoya a personas embarazadas, padres nuevos y niños menores de 5 años con alimentos saludables, fórmula infantil, ayuda con la lactancia y chequeos. El límite de ingresos es de aproximadamente el 185% del nivel de pobreza, y estar en Medicaid o SNAP suele calificarlo automáticamente.",
+      en: "WIC supports pregnant people, new parents, and children under 5 with healthy food packages, infant formula, breastfeeding support, and referrals to other services. The income limit is 185% of the poverty line, and being on Medi-Cal or CalFresh usually qualifies you automatically.",
+      es: "WIC apoya a personas embarazadas, padres nuevos y niños menores de 5 años con paquetes de alimentos saludables, fórmula infantil, apoyo con lactancia y referencias a otros servicios. El límite es el 185% del nivel de pobreza, y estar en Medi-Cal o CalFresh suele calificarlo automáticamente.",
     },
     documents: {
-      en: ["Photo ID", "Proof of income", "Proof of address", "Proof of pregnancy or child's age (for each child)"],
-      es: ["Identificación con foto", "Comprobante de ingresos", "Comprobante de domicilio", "Comprobante de embarazo o de la edad del niño (por cada niño)"],
+      en: ["Photo ID", "Proof of income or Medi-Cal/CalFresh card", "Proof of address", "Proof of pregnancy or child's age"],
+      es: ["Identificación con foto", "Comprobante de ingresos o tarjeta de Medi-Cal/CalFresh", "Comprobante de domicilio", "Comprobante de embarazo o edad del niño"],
     },
     source: {
-      label: { en: "USDA — WIC eligibility", es: "USDA — Elegibilidad de WIC" },
-      url: "https://www.fns.usda.gov/wic/wic-eligibility-requirements",
+      label: { en: "California WIC Program", es: "Programa WIC de California" },
+      url: "https://www.cdph.ca.gov/Programs/CFH/DWICSN/Pages/Program-Landing1.aspx",
     },
-    applyUrl: "https://www.fns.usda.gov/wic/applicant-participant/apply",
+    applyUrl: "https://www.cdph.ca.gov/Programs/CFH/DWICSN/Pages/WIC-Find-a-Clinic.aspx",
     evaluate: (h, ctx) => {
       if (!h.pregnantOrChildUnder5) {
         return {
@@ -153,7 +132,7 @@ export const PROGRAMS: Program[] = [
         status,
         reason: {
           en: `You have a young child or pregnancy, and your income is about ${ctx.percentOfFpl}% of the poverty line.`,
-          es: `Tiene un niño pequeño o un embarazo, y su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza.`,
+          es: `Tiene un niño pequeño o embarazo, y su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza.`,
         },
       };
     },
@@ -162,36 +141,37 @@ export const PROGRAMS: Program[] = [
   // ---------------------------------------------------------------------------
   {
     id: "eitc",
-    name: { en: "EITC — Earned Income Tax Credit", es: "EITC — Crédito Tributario por Ingreso del Trabajo" },
+    name: { en: "EITC + CalEITC — Tax Credits", es: "EITC + CalEITC — Créditos de impuestos" },
     tagline: {
-      en: "A tax refund for working households.",
-      es: "Un reembolso de impuestos para hogares que trabajan.",
+      en: "Federal and California tax refunds for working households.",
+      es: "Reembolsos de impuestos federales y de California para hogares que trabajan.",
     },
     description: {
-      en: "The EITC is a refund for people who work but don't earn a lot. You claim it on your tax return, and it can be worth a few hundred to several thousand dollars depending on your income and number of children. About 1 in 5 eligible workers miss it every year.",
-      es: "El EITC es un reembolso para personas que trabajan pero no ganan mucho. Se reclama en su declaración de impuestos y puede valer de unos cientos a varios miles de dólares según sus ingresos y número de hijos. Aproximadamente 1 de cada 5 trabajadores que califican lo pierde cada año.",
+      en: "California working families can claim both the federal Earned Income Tax Credit (EITC) and California's own CalEITC on the same tax return — potentially thousands of dollars back. About 1 in 5 eligible workers misses these credits every year. You claim them when you file taxes; free filing help is available through VITA sites.",
+      es: "Las familias trabajadoras de California pueden reclamar tanto el EITC federal como el CalEITC de California en la misma declaración de impuestos — potencialmente miles de dólares de reembolso. Aproximadamente 1 de cada 5 trabajadores elegibles pierde estos créditos cada año.",
     },
     documents: {
-      en: ["Social Security numbers (you, spouse, children)", "W-2 or 1099 income forms", "Last year's tax return (helpful)"],
-      es: ["Números de Seguro Social (usted, cónyuge, hijos)", "Formularios de ingresos W-2 o 1099", "La declaración de impuestos del año pasado (útil)"],
+      en: ["Social Security numbers (you, spouse, children)", "W-2 or 1099 income forms", "Last year's tax return (helpful)", "Bank account info for direct deposit"],
+      es: ["Números de Seguro Social (usted, cónyuge, hijos)", "Formularios de ingresos W-2 o 1099", "Declaración de impuestos del año pasado (útil)", "Información bancaria para depósito directo"],
     },
     source: {
-      label: { en: "IRS — Earned Income Tax Credit", es: "IRS — Crédito por Ingreso del Trabajo" },
-      url: "https://www.irs.gov/credits-deductions/individuals/earned-income-tax-credit-eitc",
+      label: { en: "CA FTB — CalEITC", es: "FTB de California — CalEITC" },
+      url: "https://www.ftb.ca.gov/file/personal/credits/california-earned-income-tax-credit.html",
     },
     applyUrl: "https://www.irs.gov/credits-deductions/individuals/earned-income-tax-credit/use-the-eitc-assistant",
     evaluate: (h, ctx) => {
       const tier = Math.min(h.numChildrenUnder18, 3);
-      const ceiling = EITC_INCOME_CEILING[tier];
-      const maxCredit = EITC_MAX_CREDIT[tier];
+      const federalCeiling = EITC_INCOME_CEILING[tier];
+      const calCeiling = CALEITC_CEILING[tier];
+      const maxFederal = EITC_MAX_CREDIT[tier];
+      const maxCal = CALEITC_MAX[tier];
       let status: EligibilityStatus;
       if (ctx.annualIncome <= 0) {
-        // EITC requires *earned* income.
         status = "unlikely";
-      } else if (ctx.annualIncome <= ceiling * 0.9) {
-        status = "likely";
-      } else if (ctx.annualIncome <= ceiling) {
-        status = "maybe";
+      } else if (ctx.annualIncome <= calCeiling) {
+        status = "likely"; // qualifies for both
+      } else if (ctx.annualIncome <= federalCeiling) {
+        status = "maybe"; // federal only
       } else {
         status = "unlikely";
       }
@@ -199,17 +179,11 @@ export const PROGRAMS: Program[] = [
         status,
         reason:
           ctx.annualIncome <= 0
-            ? {
-                en: "The EITC requires income from working.",
-                es: "El EITC requiere ingresos provenientes del trabajo.",
-              }
-            : {
-                en: `Based on working income and ${h.numChildrenUnder18} child(ren).`,
-                es: `Según el ingreso del trabajo y ${h.numChildrenUnder18} hijo(s).`,
-              },
+            ? { en: "EITC requires income from working.", es: "El EITC requiere ingresos provenientes del trabajo." }
+            : { en: `Based on working income and ${h.numChildrenUnder18} child(ren).`, es: `Según el ingreso del trabajo y ${h.numChildrenUnder18} hijo(s).` },
         estimate: {
-          en: `Worth up to about $${maxCredit.toLocaleString()} this year.`,
-          es: `Vale hasta aproximadamente $${maxCredit.toLocaleString()} este año.`,
+          en: `Federal EITC up to $${maxFederal.toLocaleString()} + California CalEITC up to $${maxCal.toLocaleString()}.`,
+          es: `EITC federal hasta $${maxFederal.toLocaleString()} + CalEITC de California hasta $${maxCal.toLocaleString()}.`,
         },
       };
     },
@@ -218,32 +192,29 @@ export const PROGRAMS: Program[] = [
   // ---------------------------------------------------------------------------
   {
     id: "school-meals",
-    name: { en: "Free & Reduced-Price School Meals", es: "Comidas escolares gratis o a precio reducido" },
+    name: { en: "Free & Reduced School Meals", es: "Comidas escolares gratis o a precio reducido" },
     tagline: {
       en: "Breakfast and lunch at school, at no or low cost.",
       es: "Desayuno y almuerzo en la escuela, gratis o a bajo costo.",
     },
     description: {
-      en: "Public schools offer free meals to children in households at or below 130% of the poverty line, and reduced-price meals up to 185%. Families on SNAP usually qualify automatically. You apply once through your child's school.",
-      es: "Las escuelas públicas ofrecen comidas gratis a los niños en hogares en o por debajo del 130% del nivel de pobreza, y comidas a precio reducido hasta el 185%. Las familias en SNAP suelen calificar automáticamente. Se solicita una vez a través de la escuela de su hijo.",
+      en: "California public schools offer free breakfast and lunch to children in households at or below 130% of the poverty line, and reduced-price meals up to 185%. Families on CalFresh qualify automatically. You apply once each school year through your child's school district.",
+      es: "Las escuelas públicas de California ofrecen desayuno y almuerzo gratis a niños en hogares en o por debajo del 130% del nivel de pobreza, y comidas a precio reducido hasta el 185%. Las familias en CalFresh califican automáticamente.",
     },
     documents: {
-      en: ["The school meal application (from your school or district)", "Proof of income or your SNAP/Medicaid case number"],
-      es: ["La solicitud de comidas escolares (de su escuela o distrito)", "Comprobante de ingresos o su número de caso de SNAP/Medicaid"],
+      en: ["School meal application (from your child's school)", "Proof of income or CalFresh/Medi-Cal case number"],
+      es: ["Solicitud de comidas escolares (de la escuela de su hijo)", "Comprobante de ingresos o número de caso de CalFresh/Medi-Cal"],
     },
     source: {
-      label: { en: "USDA — National School Lunch Program", es: "USDA — Programa Nacional de Almuerzos Escolares" },
-      url: "https://www.fns.usda.gov/nslp",
+      label: { en: "CA Dept. of Education — School Meals", es: "Dept. de Educación de CA — Comidas Escolares" },
+      url: "https://www.cde.ca.gov/ls/nu/sn/",
     },
-    applyUrl: "https://www.fns.usda.gov/nslp/applying-free-and-reduced-price-school-meals",
+    applyUrl: "https://www.cde.ca.gov/ls/nu/sn/flpapply.asp",
     evaluate: (h, ctx) => {
       if (!h.childrenInK12) {
         return {
           status: "unlikely",
-          reason: {
-            en: "This is for children in K–12 school.",
-            es: "Esto es para niños en la escuela (K–12).",
-          },
+          reason: { en: "This is for children currently in K–12 school.", es: "Esto es para niños actualmente en la escuela (K–12)." },
         };
       }
       const status = byFpl(ctx.percentOfFpl, 130, 185);
@@ -265,28 +236,28 @@ export const PROGRAMS: Program[] = [
     name: { en: "LIHEAP — Help With Energy Bills", es: "LIHEAP — Ayuda con facturas de energía" },
     tagline: {
       en: "Assistance paying heating and cooling bills.",
-      es: "Ayuda para pagar facturas de calefacción y aire.",
+      es: "Ayuda para pagar facturas de calefacción y aire acondicionado.",
     },
     description: {
-      en: "LIHEAP helps low-income households pay their home energy bills, and in many states can help in a heating or cooling emergency. Income limits are set by each state — commonly around 150% of the poverty line.",
-      es: "LIHEAP ayuda a hogares de bajos ingresos a pagar las facturas de energía del hogar y, en muchos estados, puede ayudar en una emergencia de calefacción o aire. Los límites de ingresos los fija cada estado; comúnmente alrededor del 150% del nivel de pobreza.",
+      en: "LIHEAP helps low-income California households pay their energy bills and can provide emergency help when a household faces disconnection. California's income limit is typically 60% of the state median income or 150% of the federal poverty line, whichever is higher.",
+      es: "LIHEAP ayuda a hogares de bajos ingresos en California a pagar sus facturas de energía y puede brindar ayuda de emergencia cuando un hogar enfrenta desconexión. El límite de ingresos de California es típicamente el 60% del ingreso medio estatal o el 150% del nivel de pobreza federal.",
     },
     documents: {
-      en: ["Photo ID", "Proof of income", "A recent energy/utility bill", "Proof of address"],
-      es: ["Identificación con foto", "Comprobante de ingresos", "Una factura reciente de energía/servicios", "Comprobante de domicilio"],
+      en: ["Photo ID", "Proof of income", "A recent utility/energy bill", "Proof of address"],
+      es: ["Identificación con foto", "Comprobante de ingresos", "Una factura reciente de servicios/energía", "Comprobante de domicilio"],
     },
     source: {
-      label: { en: "HHS — LIHEAP", es: "HHS — LIHEAP" },
-      url: "https://www.acf.hhs.gov/ocs/programs/liheap",
+      label: { en: "California LIHEAP", es: "LIHEAP de California" },
+      url: "https://www.csd.ca.gov/Pages/LIHEAPProgram.aspx",
     },
-    applyUrl: "https://www.acf.hhs.gov/ocs/map/liheap-map-state-and-territory-contact-listing",
+    applyUrl: "https://www.csd.ca.gov/Pages/FindAssistance.aspx",
     evaluate: (_h, ctx) => {
       const status = byFpl(ctx.percentOfFpl, 150, 200);
       return {
         status,
         reason: {
-          en: `Your income is about ${ctx.percentOfFpl}% of the poverty line (state limits vary).`,
-          es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza (los límites estatales varían).`,
+          en: `Your income is about ${ctx.percentOfFpl}% of the poverty line. California's limit is around 150% FPL.`,
+          es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza. El límite de California es alrededor del 150% FPL.`,
         },
       };
     },
@@ -295,31 +266,82 @@ export const PROGRAMS: Program[] = [
   // ---------------------------------------------------------------------------
   {
     id: "lifeline",
-    name: { en: "Lifeline — Phone & Internet Discount", es: "Lifeline — Descuento de teléfono e internet" },
+    name: { en: "Lifeline + ACP — Phone & Internet Help", es: "Lifeline + ACP — Ayuda de teléfono e internet" },
     tagline: {
-      en: "A monthly discount on phone or internet service.",
-      es: "Un descuento mensual en el servicio de teléfono o internet.",
+      en: "Monthly discount on phone or internet service.",
+      es: "Descuento mensual en el servicio de teléfono o internet.",
     },
     description: {
-      en: "Lifeline lowers the monthly cost of phone or internet service for eligible households. You qualify if your income is at or below 135% of the poverty line, or if you're already on a program like SNAP or Medicaid.",
-      es: "Lifeline reduce el costo mensual del servicio de teléfono o internet para hogares elegibles. Califica si su ingreso está en o por debajo del 135% del nivel de pobreza, o si ya participa en un programa como SNAP o Medicaid.",
+      en: "Lifeline provides a monthly discount on phone or internet service for eligible households. California's LifeLine program adds an extra state discount on top of the federal benefit. You qualify if your income is at or below 135% of the poverty line, or if you're already on CalFresh, Medi-Cal, or SSI.",
+      es: "Lifeline ofrece un descuento mensual en el servicio de teléfono o internet. El programa LifeLine de California agrega un descuento estatal adicional. Califica si su ingreso está en o por debajo del 135% del nivel de pobreza, o si ya participa en CalFresh, Medi-Cal o SSI.",
     },
     documents: {
-      en: ["Photo ID", "Proof of income OR proof you're on SNAP/Medicaid/SSI"],
-      es: ["Identificación con foto", "Comprobante de ingresos O comprobante de SNAP/Medicaid/SSI"],
+      en: ["Photo ID", "Proof of income OR proof of CalFresh/Medi-Cal/SSI enrollment"],
+      es: ["Identificación con foto", "Comprobante de ingresos O comprobante de inscripción en CalFresh/Medi-Cal/SSI"],
     },
     source: {
-      label: { en: "FCC — Lifeline program", es: "FCC — Programa Lifeline" },
-      url: "https://www.fcc.gov/lifeline-consumers",
+      label: { en: "CA PUC — California LifeLine", es: "CA PUC — California LifeLine" },
+      url: "https://www.cpuc.ca.gov/industries-and-topics/internet-and-phone/california-lifeline-program",
     },
-    applyUrl: "https://www.lifelinesupport.org/",
+    applyUrl: "https://www.californialifeline.com/en",
     evaluate: (_h, ctx) => {
       const status = byFpl(ctx.percentOfFpl, 135, 150);
       return {
         status,
         reason: {
-          en: `Your income is about ${ctx.percentOfFpl}% of the poverty line, or you may qualify through SNAP/Medicaid.`,
-          es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza, o podría calificar mediante SNAP/Medicaid.`,
+          en: `Your income is about ${ctx.percentOfFpl}% of the poverty line, or you may qualify through CalFresh or Medi-Cal.`,
+          es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza, o podría calificar mediante CalFresh o Medi-Cal.`,
+        },
+        estimate: {
+          en: "Federal Lifeline: up to $9.25/month off your bill. California LifeLine adds more on top.",
+          es: "Lifeline federal: hasta $9.25/mes de descuento. California LifeLine agrega más encima.",
+        },
+      };
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  {
+    id: "ssi",
+    name: { en: "SSI/SSP — Supplemental Security Income", es: "SSI/SSP — Ingreso de Seguridad Suplementario" },
+    tagline: {
+      en: "Monthly cash for people who are elderly, blind, or have a disability.",
+      es: "Dinero mensual para personas mayores, ciegas o con discapacidad.",
+    },
+    description: {
+      en: "SSI (federal) combined with California's SSP supplement provides monthly cash payments to people who are 65 or older, blind, or have a disability, and have limited income and resources. California's combined SSI/SSP payment is one of the highest in the country.",
+      es: "SSI (federal) combinado con el suplemento SSP de California proporciona pagos mensuales en efectivo a personas de 65 años o más, ciegas o con discapacidad, y con ingresos y recursos limitados. El pago combinado SSI/SSP de California es uno de los más altos del país.",
+    },
+    documents: {
+      en: ["Photo ID", "Proof of age or disability documentation", "Proof of income and resources", "Social Security number"],
+      es: ["Identificación con foto", "Comprobante de edad o documentación de discapacidad", "Comprobante de ingresos y recursos", "Número de Seguro Social"],
+    },
+    source: {
+      label: { en: "SSA — SSI Program", es: "SSA — Programa SSI" },
+      url: "https://www.ssa.gov/ssi/",
+    },
+    applyUrl: "https://www.ssa.gov/applyforbenefits",
+    evaluate: (h, ctx) => {
+      const eligible = h.someoneOver60;
+      if (!eligible) {
+        return {
+          status: "unlikely",
+          reason: {
+            en: "SSI/SSP is primarily for people 65+, or those who are blind or have a qualifying disability.",
+            es: "SSI/SSP es principalmente para personas de 65 años o más, o personas ciegas o con discapacidad.",
+          },
+        };
+      }
+      const status = byFpl(ctx.percentOfFpl, 100, 150);
+      return {
+        status,
+        reason: {
+          en: `Someone in your household is over 60 and your income is about ${ctx.percentOfFpl}% of the poverty line.`,
+          es: `Alguien en su hogar tiene más de 60 años y su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza.`,
+        },
+        estimate: {
+          en: "California SSI/SSP: up to $1,182/month for an individual (2024).",
+          es: "SSI/SSP de California: hasta $1,182/mes para una persona (2024).",
         },
       };
     },

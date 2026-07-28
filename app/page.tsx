@@ -7,6 +7,7 @@ import { APP_NAME, APP_MEANING } from "@/lib/brand";
 import { Logo } from "@/components/icons";
 import LanguageToggle from "@/components/LanguageToggle";
 import BenefitsTool from "@/components/BenefitsTool";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export default function Page() {
   const [lang, setLang] = useState<Language>("en");
@@ -34,6 +35,9 @@ export default function Page() {
           <p className="mt-3 italic">{APP_MEANING[lang]}</p>
         </div>
       </footer>
+
+      {/* PWA install banner — shows automatically when browser supports it */}
+      <InstallPrompt lang={lang} />
     </div>
   );
 }
