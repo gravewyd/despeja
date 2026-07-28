@@ -1,8 +1,8 @@
 # Despeja
 
-**See what government help you may qualify for — in plain language, in your language.**
+**See what government help you may qualify for in plain language, in your language.**
 
-I built Despeja because of a problem I saw through Tessera, a nonprofit that helps low-income families navigate government systems. A lot of people who qualify for assistance programs never apply — not because they're ineligible, but because the process is confusing, the language is hard to understand, and it's hard to even know where to start. Despeja tries to fix that.
+I built Despeja because of a problem I saw through Tessera, a nonprofit that helps low-income families navigate government systems. A lot of people who qualify for assistance programs never apply, not because they're ineligible, but because the process is confusing, the language is hard to understand, and it's hard to even know where to start. Despeja tries to fix that.
 
 The name is Spanish for *"it clears things up."*
 
@@ -10,7 +10,7 @@ The name is Spanish for *"it clears things up."*
 
 ## What it does
 
-You answer seven questions about your household — state, size, income, and a few yes/no questions about your situation. Despeja runs those answers through each program's real eligibility rules and tells you which programs you likely qualify for, why, what documents you'll need, and where to apply.
+You answer seven questions about your household state, size, income, and a few yes/no questions about your situation. Despeja runs those answers through each program's real eligibility rules and tells you which programs you likely qualify for, why, what documents you'll need, and where to apply.
 
 It checks eight California programs:
 
@@ -32,11 +32,11 @@ Each result includes:
 
 ### The income change preview
 
-Most screeners stop at the results page. Despeja adds one more feature: a slider that shows how a raise or fewer hours would change what you qualify for. This is called the **benefits cliff** — the point where earning a little more can actually make a family worse off because they lose more in benefits than they gained in income. It's a real problem that discourages work, and it's something almost no tool visualizes clearly.
+Most screeners stop at the results page. Despeja adds one more feature: a slider that shows how a raise or fewer hours would change what you qualify for. This is called the **benefits cliff**, the point where earning a little more can actually make a family worse off because they lose more in benefits than they gained in income. It's a real problem that discourages work, and it's something almost no tool visualizes clearly.
 
 ### Built-in for the long term
 
-Life changes. A new baby, a job loss, a raise, a child starting school — any of these can change what you qualify for. Despeja has a "Did your situation change?" section at the bottom of results so users can re-run the screener any time things shift. The goal is that this becomes something a family actually keeps on their phone and uses over time, not just once.
+Life changes. A new baby, a job loss, a raise, a child starting school, any of these can change what you qualify for. Despeja has a "Did your situation change?" section at the bottom of results so users can re-run the screener any time things shift. The goal is that this becomes something a family actually keeps on their phone and uses over time, not just once.
 
 ### Private by design
 
@@ -50,7 +50,7 @@ Every word of the app is available in English and Spanish with one tap.
 
 ## How I built it
 
-Despeja is a full-stack TypeScript app on **Next.js 14** (App Router), styled with **Tailwind CSS**. There's no database — the eligibility engine is pure logic that runs in the browser.
+Despeja is a full-stack TypeScript app on **Next.js 14** (App Router), styled with **Tailwind CSS**. There's no database, the eligibility engine is pure logic that runs in the browser.
 
 ```
 app/
