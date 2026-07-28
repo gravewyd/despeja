@@ -1,0 +1,51 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background-color: theme("colors.paper");
+    color: theme("colors.ink");
+    font-family: theme("fontFamily.sans");
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: theme("fontFamily.display");
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+  }
+
+  :focus-visible {
+    outline: 3px solid theme("colors.brand.DEFAULT");
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Clean default styling for native form controls. */
+  input, select, textarea, button { font: inherit; color: inherit; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Staggered reveal for lists of cards. */
+.stagger > * { animation: fade-up 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+.stagger > *:nth-child(1){animation-delay:.04s}
+.stagger > *:nth-child(2){animation-delay:.09s}
+.stagger > *:nth-child(3){animation-delay:.14s}
+.stagger > *:nth-child(4){animation-delay:.19s}
+.stagger > *:nth-child(5){animation-delay:.24s}
+.stagger > *:nth-child(6){animation-delay:.29s}
+.stagger > *:nth-child(7){animation-delay:.34s}
