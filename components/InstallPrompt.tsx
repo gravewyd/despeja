@@ -1,8 +1,4 @@
 // components/InstallPrompt.tsx
-// PWA install support:
-// - Android/Chrome: uses beforeinstallprompt for a native install banner
-// - iOS/Safari: Safari doesn't support beforeinstallprompt, so we show
-//   manual instructions ("tap Share → Add to Home Screen")
 "use client";
 import { useEffect, useState } from "react";
 import type { Language } from "@/lib/types";
@@ -17,29 +13,35 @@ function isIos() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
+function isSafari() {
+  if (typeof navigator === "undefined") return false;
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
 function isInStandaloneMode() {
   if (typeof window === "undefined") return false;
-  return ("standalone" in window.navigator && (window.navigator as { standalone?: boolean }).standalone === true) ||
-    window.matchMedia("(display-mode: standalone)").matches;
+  return (
+    ("standalone" in window.navigator &&
+      (window.navigator as { standalone?: boolean }).standalone === true) ||
+    window.matchMedia("(display-mode: standalone)").matches
+  );
 }
 
 export default function InstallPrompt({ lang }: { lang: Language }) {
   const [androidPrompt, setAndroidPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showIos, setShowIos] = useState(false);
+  const [iosState, setIosState] = useState<"hidden" | "not-safari" | "safari">("hidden");
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Don't show if already installed
     if (isInStandaloneMode()) return;
 
-    // iOS: show manual instructions
     if (isIos()) {
-      // Small delay so it doesn't flash on first load
-      const timer = setTimeout(() => setShowIos(true), 2500);
+      const timer = setTimeout(() => {
+        setIosState(isSafari() ? "safari" : "not-safari");
+      }, 1500);
       return () => clearTimeout(timer);
     }
 
-    // Android/Chrome: listen for native install prompt
     const handler = (e: Event) => {
       e.preventDefault();
       setAndroidPrompt(e as BeforeInstallPromptEvent);
@@ -50,7 +52,7 @@ export default function InstallPrompt({ lang }: { lang: Language }) {
 
   if (dismissed) return null;
 
-  // Android native install banner
+  // Android native install
   if (androidPrompt) {
     const install = async () => {
       await androidPrompt.prompt();
@@ -61,67 +63,84 @@ export default function InstallPrompt({ lang }: { lang: Language }) {
       }
     };
     return (
-      <div className="install-banner" role="banner">
-        <div className="flex items-center gap-3">
-          <PhoneIcon />
-          <span>
-            {lang === "es"
-              ? "Agrega Despeja a tu pantalla de inicio — funciona sin internet."
-              : "Add Despeja to your home screen — works without internet."}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button type="button" onClick={install}
-            className="rounded-full bg-brand px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark">
-            {lang === "es" ? "Instalar" : "Install"}
-          </button>
-          <button type="button" onClick={() => setDismissed(true)} aria-label="Dismiss"
-            className="rounded-full p-1.5 text-white/60 hover:text-white">
-            <CloseIcon />
-          </button>
-        </div>
-      </div>
+      <Banner onDismiss={() => setDismissed(true)}>
+        <span>
+          {lang === "es"
+            ? "Agrega Despeja a tu pantalla de inicio — funciona sin internet."
+            : "Add Despeja to your home screen — works without internet."}
+        </span>
+        <button
+          type="button"
+          onClick={install}
+          className="rounded-full bg-brand px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark shrink-0"
+        >
+          {lang === "es" ? "Instalar" : "Install"}
+        </button>
+      </Banner>
     );
   }
 
-  // iOS manual instructions banner
-  if (showIos) {
+  // iOS in Safari — show native install instructions
+  if (iosState === "safari") {
     return (
-      <div className="install-banner" role="banner">
-        <div className="flex flex-col gap-1">
-          <span className="font-semibold">
+      <Banner onDismiss={() => setDismissed(true)}>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-semibold text-sm">
             {lang === "es" ? "Instala Despeja en tu iPhone:" : "Install Despeja on your iPhone:"}
           </span>
-          <span className="text-white/80 text-sm">
+          <span className="text-white/80 text-xs">
             {lang === "es"
-              ? "Toca el botón Compartir  ↑  en Safari → \"Agregar a pantalla de inicio\""
-              : 'Tap the Share button ↑ in Safari → "Add to Home Screen"'}
+              ? 'Toca Compartir  ↑  → "Agregar a pantalla de inicio"'
+              : 'Tap Share ↑ below → "Add to Home Screen"'}
           </span>
         </div>
-        <button type="button" onClick={() => setDismissed(true)} aria-label="Dismiss"
-          className="ml-4 shrink-0 rounded-full p-1.5 text-white/60 hover:text-white">
-          <CloseIcon />
-        </button>
-      </div>
+      </Banner>
+    );
+  }
+
+  // iOS but NOT in Safari — tell them to switch
+  if (iosState === "not-safari") {
+    return (
+      <Banner onDismiss={() => setDismissed(true)}>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-semibold text-sm">
+            {lang === "es"
+              ? "¿Quieres instalar esta app?"
+              : "Want to install this app?"}
+          </span>
+          <span className="text-white/80 text-xs">
+            {lang === "es"
+              ? "Abre esta página en Safari para agregarla a tu pantalla de inicio. 🧭"
+              : "Open this page in Safari to add it to your home screen. 🧭"}
+          </span>
+        </div>
+      </Banner>
     );
   }
 
   return null;
 }
 
-function PhoneIcon() {
+function Banner({
+  children,
+  onDismiss,
+}: {
+  children: React.ReactNode;
+  onDismiss: () => void;
+}) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <rect x="5" y="2" width="14" height="20" rx="2" />
-      <path d="M12 18h.01" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M18 6 6 18M6 6l12 12" />
-    </svg>
+    <div className="install-banner" role="banner">
+      <div className="flex items-center gap-3 flex-1 min-w-0">{children}</div>
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss"
+        className="ml-3 shrink-0 rounded-full p-1.5 text-white/60 hover:text-white"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
   );
 }
