@@ -346,6 +346,130 @@ export const PROGRAMS: Program[] = [
       };
     },
   },
+
+  // ---------------------------------------------------------------------------
+  {
+    id: "calworks",
+    name: { en: "CalWORKs — Cash Assistance for Families", es: "CalWORKs — Ayuda en efectivo para familias" },
+    tagline: {
+      en: "Monthly cash payments for families with children in need.",
+      es: "Pagos mensuales en efectivo para familias con niños en necesidad.",
+    },
+    description: {
+      en: "CalWORKs (California Work Opportunity and Responsibility to Kids) provides monthly cash payments to families with children who have low or no income. It also provides childcare, job training, and support services. The program helps families become self-sufficient while keeping children safe and cared for.",
+      es: "CalWORKs proporciona pagos mensuales en efectivo a familias con niños que tienen ingresos bajos o nulos. También proporciona cuidado infantil, capacitación laboral y servicios de apoyo. El programa ayuda a las familias a ser autosuficientes mientras mantiene a los niños seguros y cuidados.",
+    },
+    documents: {
+      en: ["Photo ID", "Proof of income", "Proof of California residency", "Children's birth certificates", "Social Security numbers"],
+      es: ["Identificación con foto", "Comprobante de ingresos", "Comprobante de residencia en California", "Actas de nacimiento de los niños", "Números de Seguro Social"],
+    },
+    source: {
+      label: { en: "California CDSS — CalWORKs", es: "CDSS de California — CalWORKs" },
+      url: "https://www.cdss.ca.gov/calworks",
+    },
+    applyUrl: "https://benefitscal.com",
+    evaluate: (h, ctx) => {
+      if (h.numChildrenUnder18 === 0) {
+        return {
+          status: "unlikely",
+          reason: { en: "CalWORKs is for families with children under 18.", es: "CalWORKs es para familias con hijos menores de 18 años." },
+        };
+      }
+      const status = byFpl(ctx.percentOfFpl, 100, 130);
+      return {
+        status,
+        reason: {
+          en: `Your household has ${h.numChildrenUnder18} child(ren) and income is about ${ctx.percentOfFpl}% of the poverty line.`,
+          es: `Su hogar tiene ${h.numChildrenUnder18} hijo(s) y el ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza.`,
+        },
+        estimate: {
+          en: "Monthly cash grant varies by family size — typically $700–$1,100/month for a family of 3.",
+          es: "El monto mensual varía según el tamaño de la familia — típicamente $700–$1,100/mes para una familia de 3.",
+        },
+      };
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  {
+    id: "covered-ca",
+    name: { en: "Covered California — Health Insurance", es: "Covered California — Seguro médico" },
+    tagline: {
+      en: "Subsidized health insurance if you earn too much for Medi-Cal.",
+      es: "Seguro médico subsidiado si ganas demasiado para Medi-Cal.",
+    },
+    description: {
+      en: "Covered California is the state's health insurance marketplace. If your income is above Medi-Cal limits but below 400% of the poverty line, you can get significant subsidies to lower your monthly premium. Many people pay as little as $0–$10/month after subsidies. Open enrollment runs November through January.",
+      es: "Covered California es el mercado de seguros médicos del estado. Si su ingreso supera los límites de Medi-Cal pero está por debajo del 400% del nivel de pobreza, puede obtener subsidios significativos para reducir su prima mensual. Muchas personas pagan tan poco como $0–$10/mes después de los subsidios.",
+    },
+    documents: {
+      en: ["Photo ID", "Social Security numbers", "Proof of income (pay stubs or tax return)", "Current health insurance info (if any)"],
+      es: ["Identificación con foto", "Números de Seguro Social", "Comprobante de ingresos (talones de pago o declaración de impuestos)", "Información de seguro médico actual (si tiene)"],
+    },
+    source: {
+      label: { en: "Covered California", es: "Covered California" },
+      url: "https://www.coveredca.com",
+    },
+    applyUrl: "https://www.coveredca.com/apply/",
+    evaluate: (_h, ctx) => {
+      // Medi-Cal covers up to 138% FPL; Covered CA subsidies up to 400% FPL
+      if (ctx.percentOfFpl <= 138) {
+        return {
+          status: "unlikely",
+          reason: { en: "At your income, you likely qualify for Medi-Cal (free) instead.", es: "Con su ingreso, probablemente califica para Medi-Cal (gratis)." },
+        };
+      }
+      const status = byFpl(ctx.percentOfFpl, 250, 400);
+      return {
+        status,
+        reason: {
+          en: `Your income is about ${ctx.percentOfFpl}% of the poverty line — in the range for Covered California subsidies.`,
+          es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza — dentro del rango para subsidios de Covered California.`,
+        },
+        estimate: {
+          en: "Subsidies can reduce premiums by hundreds per month. Many pay $0–$50/month after aid.",
+          es: "Los subsidios pueden reducir las primas en cientos al mes. Muchos pagan $0–$50/mes después de la ayuda.",
+        },
+      };
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  {
+    id: "care-fera",
+    name: { en: "CARE/FERA — Utility Rate Discount", es: "CARE/FERA — Descuento en tarifas de servicios" },
+    tagline: {
+      en: "Lower electric and gas rates through PG&E, SoCalGas, and other utilities.",
+      es: "Tarifas de electricidad y gas más bajas a través de PG&E, SoCalGas y otras empresas.",
+    },
+    description: {
+      en: "CARE (California Alternate Rates for Energy) gives a 20–35% discount on monthly electric and gas bills. FERA (Family Electric Rate Assistance) gives an 18% electric discount to slightly higher-income households of 3+. If you're on CalFresh or Medi-Cal, you qualify for CARE automatically. Apply directly through your utility company.",
+      es: "CARE (Tarifas Alternas de California para Energía) da un descuento del 20–35% en facturas mensuales de electricidad y gas. FERA da un descuento del 18% en electricidad a hogares con ingresos un poco más altos de 3 personas o más. Si está en CalFresh o Medi-Cal, califica para CARE automáticamente.",
+    },
+    documents: {
+      en: ["Your utility account number", "Proof of income OR CalFresh/Medi-Cal enrollment"],
+      es: ["Su número de cuenta de servicios públicos", "Comprobante de ingresos O inscripción en CalFresh/Medi-Cal"],
+    },
+    source: {
+      label: { en: "CPUC — CARE/FERA Programs", es: "CPUC — Programas CARE/FERA" },
+      url: "https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/electric-costs/care-fera-program",
+    },
+    applyUrl: "https://www.pge.com/en/save-energy-and-money/financial-assistance/care-program.html",
+    evaluate: (_h, ctx) => {
+      const status = byFpl(ctx.percentOfFpl, 200, 250);
+      return {
+        status,
+        reason: {
+          en: `Your income is about ${ctx.percentOfFpl}% of the poverty line. CARE covers up to 200% FPL; FERA up to 250%.`,
+          es: `Su ingreso es aproximadamente el ${ctx.percentOfFpl}% del nivel de pobreza. CARE cubre hasta el 200% FPL; FERA hasta el 250%.`,
+        },
+        estimate: {
+          en: "CARE: 20–35% off your monthly utility bill. FERA: 18% off electricity.",
+          es: "CARE: 20–35% de descuento en su factura mensual. FERA: 18% de descuento en electricidad.",
+        },
+      };
+    },
+  },
 ];
 
 export function getProgram(id: string): Program | undefined {

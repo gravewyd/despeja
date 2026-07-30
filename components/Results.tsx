@@ -6,6 +6,7 @@ import { screen, countMatches } from "@/lib/eligibility";
 import { percentOfFpl } from "@/lib/fpl";
 import ProgramCard from "./ProgramCard";
 import IncomePreview from "./IncomePreview";
+import CliffChart from "./CliffChart";
 import PrintResults from "./PrintResults";
 import LifeChangePrompt from "./LifeChangePrompt";
 import { Info } from "./icons";
@@ -33,11 +34,9 @@ export default function Results({
         <p className="mt-3 text-muted">{t(lang, "resultsLead")}</p>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <div className="flex items-start gap-2 rounded-xl border border-accent/30 bg-accent-soft/50 px-4 py-3 flex-1">
-          <Info className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden />
-          <p className="text-sm text-ink">{t(lang, "disclaimer")}</p>
-        </div>
+      <div className="mt-4 flex items-start gap-2 rounded-xl border border-accent/30 bg-accent-soft/50 px-4 py-3">
+        <Info className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden />
+        <p className="text-sm text-ink">{t(lang, "disclaimer")}</p>
       </div>
 
       <div className="mt-3 flex justify-end">
@@ -53,7 +52,10 @@ export default function Results({
         ))}
       </div>
 
-      {/* Benefits cliff: what happens if income changes */}
+      {/* Benefits cliff chart — the visual that makes us unique */}
+      <CliffChart household={household} lang={lang} />
+
+      {/* Slider — interactive income preview */}
       <IncomePreview lang={lang} household={household} />
 
       {/* Life change re-screener */}
