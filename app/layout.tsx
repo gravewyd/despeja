@@ -4,9 +4,9 @@ import { APP_NAME } from "@/lib/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} — government benefits, made clear`,
+  title: `${APP_NAME},
   description:
-    "Find benefits you may qualify for, in plain language and in your language. Free, private, bilingual.",
+    "Find benefits you may qualify for - in plain language and in your language. Free, private, bilingual.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
