@@ -13,6 +13,7 @@ const LIFE_EVENTS = [
   { id: "child-school", en: "Child started school", es: "Mi hijo(a) empezó la escuela" },
   { id: "turned-65", en: "Someone turned 65", es: "Alguien cumplió 65 años" },
   { id: "household", en: "Household size changed", es: "Cambió el tamaño de mi hogar" },
+  { id: "family death", en: "A family member passed away or has illness", es: "Un familiar ha fallecido o está enfermo."},
 ];
 
 interface Props {
