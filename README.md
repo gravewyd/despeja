@@ -4,7 +4,7 @@
 
 I built Despeja because of a problem I saw through Tessera, a nonprofit that helps low-income families navigate government systems. A lot of people who qualify for assistance programs never apply, not because they're ineligible, but because the process is confusing, the language is hard to understand, and it's hard to even know where to start. Despeja tries to fix that.
 
-The name is Spanish for *"it clears things up."*
+The name is Spanish for "it clears things up."
 
 ---
 
