@@ -1,15 +1,5 @@
 // lib/fpl.ts
-// Federal Poverty Level (FPL) helpers.
-//
-// ⚠️ UPDATE ANNUALLY. These are the HHS Poverty Guidelines for the 48
-// contiguous states + DC. They change every January. Alaska and Hawaii use
-// HIGHER numbers — a real production version should branch on `state`.
-//
-// Verify the current figures here before you submit:
-//   https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines
-//
-// The values below are approximate and provided so the app runs out of the
-// box. Confirm and correct them — accuracy is the whole point of Despeja.
+// Federal Poverty Level (FPL) helpers
 
 /** Base figure for a 1-person household (annual, USD). */
 const FPL_BASE = 15650;
