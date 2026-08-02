@@ -6,11 +6,28 @@ import { t } from "@/lib/i18n";
 import { QUESTIONS } from "./questionData";
 import QuestionCard from "./QuestionCard";
 import ProgressBar from "./ProgressBar";
-import { ArrowRight } from "./icons";
+import { ArrowRight, Shield } from "./icons";
 
 const DEFAULTS: Household = {
   state: "", householdSize: 1, monthlyIncome: 0, numChildrenUnder18: 0,
   pregnantOrChildUnder5: false, childrenInK12: false, someoneOver60: false,
+};
+
+// Shown right next to the specific question it explains — reassurance works
+// best exactly where the hesitation happens, not just once in the hero.
+const TRUST_NOTES: Partial<Record<keyof Household, Record<Language, string>>> = {
+  state: {
+    en: "We ask because program names and income limits differ by state. This never leaves your device.",
+    es: "Preguntamos porque los nombres y límites de ingreso varían por estado. Esto nunca sale de su dispositivo.",
+  },
+  monthlyIncome: {
+    en: "Used only to estimate eligibility, calculated right here in your browser — never saved, never sent anywhere.",
+    es: "Se usa solo para estimar elegibilidad, calculado aquí en su navegador — nunca se guarda ni se envía.",
+  },
+  householdSize: {
+    en: "Program income limits depend on household size — that's the only reason we ask.",
+    es: "Los límites de ingreso de los programas dependen del tamaño del hogar — por eso lo preguntamos.",
+  },
 };
 
 export default function Screening({ lang, onComplete }: { lang: Language; onComplete: (h: Household) => void }) {
@@ -19,17 +36,24 @@ export default function Screening({ lang, onComplete }: { lang: Language; onComp
   const question = QUESTIONS[index];
   const isLast = index === QUESTIONS.length - 1;
   const canAdvance = question.key === "state" ? draft.state !== "" : true;
+  const trustNote = TRUST_NOTES[question.key];
 
   return (
     <section className="mx-auto max-w-xl">
       <ProgressBar current={index + 1} total={QUESTIONS.length} lang={lang} />
-      <div key={index} className="min-h-[210px]">
+      <div key={index} className="min-h-[210px] animate-fade-up">
         <QuestionCard
           question={question}
           value={draft[question.key]}
           onChange={(v) => setDraft((d) => ({ ...d, [question.key]: v }))}
           lang={lang}
         />
+        {trustNote && (
+          <p className="mt-4 flex items-start gap-2 text-sm text-muted">
+            <Shield className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand" aria-hidden />
+            <span>{trustNote[lang]}</span>
+          </p>
+        )}
       </div>
       <div className="mt-10 flex items-center justify-between">
         <button
