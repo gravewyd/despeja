@@ -6,15 +6,18 @@ const I = (p: SVGProps<SVGSVGElement>, sw = 2) => ({
   strokeWidth: sw, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, ...p,
 });
 
-export const Logo = (p: SVGProps<SVGSVGElement>) => (
-  // A page being "cleared up" — overlapping rounded square + a check.
-  <svg {...I(p, 1.8)}>
-    <rect x="4" y="3" width="13" height="17" rx="3" />
-    <path d="M8 8h6M8 12h6M8 16h3" opacity="0.5" />
-    <circle cx="17.5" cy="16.5" r="4.2" fill="currentColor" stroke="none" opacity="0.18" />
-    <path d="m15.7 16.6 1.3 1.3 2.3-2.6" />
-  </svg>
-);
+export function Logo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="currentColor" aria-hidden>
+      <rect x="46" y="26" width="8" height="26" rx="4" transform="rotate(0 50 63)" />
+      <rect x="46.25" y="31" width="7.5" height="21" rx="3.75" transform="rotate(-32 50 63)" />
+      <rect x="46.25" y="31" width="7.5" height="21" rx="3.75" transform="rotate(32 50 63)" />
+      <rect x="46.5" y="37.5" width="7" height="14.5" rx="3.5" transform="rotate(-60 50 63)" />
+      <rect x="46.5" y="37.5" width="7" height="14.5" rx="3.5" transform="rotate(60 50 63)" />
+      <circle cx="50" cy="63" r="10" />
+    </svg>
+  );
+}
 export const Home = (p: SVGProps<SVGSVGElement>) => (<svg {...I(p)}><path d="M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5" /></svg>);
 export const FileText = (p: SVGProps<SVGSVGElement>) => (<svg {...I(p)}><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><path d="M14 3v6h6M8 13h8M8 17h6" /></svg>);
 export const Mail = (p: SVGProps<SVGSVGElement>) => (<svg {...I(p)}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>);
