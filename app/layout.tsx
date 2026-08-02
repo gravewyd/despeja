@@ -1,17 +1,16 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { APP_NAME } from "@/lib/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: `${APP_NAME},
+  title: "Despeja",
   description:
     "Find benefits you may qualify for - in plain language and in your language. Free, private, bilingual.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: APP_NAME,
+    title: "Despeja",
   },
   other: {
     "mobile-web-app-capable": "yes",
